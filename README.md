@@ -84,7 +84,6 @@
         npm test
 4.  Bootstrap your AWS account so that cdk can deploy resources in it.
     Do this if its the first time you are deploying with CDKv2 (as opposed to v1).
-        awse bkco       // personal command to setup keys
         aws s3 ls       // check your keys are working
         cdk bootstrap aws://<your-account-number>/<your-region>
         cdk bootstrap aws://123441421234/eu-west-1      // creates CDKToolkit cloudformation stack
