@@ -1,0 +1,419 @@
+{
+  "version": "tree-0.1",
+  "tree": {
+    "id": "App",
+    "path": "",
+    "children": {
+      "Tree": {
+        "id": "Tree",
+        "path": "Tree",
+        "constructInfo": {
+          "fqn": "constructs.Construct",
+          "version": "10.0.94"
+        }
+      },
+      "AppStack": {
+        "id": "AppStack",
+        "path": "AppStack",
+        "children": {
+          "rootStream": {
+            "id": "rootStream",
+            "path": "AppStack/rootStream",
+            "children": {
+              "Resource": {
+                "id": "Resource",
+                "path": "AppStack/rootStream/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::Kinesis::Stream",
+                  "aws:cdk:cloudformation:props": {
+                    "name": "bkco-kinesis-stream",
+                    "retentionPeriodHours": 24,
+                    "shardCount": 1,
+                    "streamEncryption": {
+                      "Fn::If": [
+                        "AwsCdkKinesisEncryptedStreamsUnsupportedRegions",
+                        {
+                          "Ref": "AWS::NoValue"
+                        },
+                        {
+                          "EncryptionType": "KMS",
+                          "KeyId": "alias/aws/kinesis"
+                        }
+                      ]
+                    },
+                    "streamModeDetails": {
+                      "streamMode": "PROVISIONED"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_kinesis.CfnStream",
+                  "version": "2.17.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_kinesis.Stream",
+              "version": "2.17.0"
+            }
+          },
+          "AwsCdkKinesisEncryptedStreamsUnsupportedRegions": {
+            "id": "AwsCdkKinesisEncryptedStreamsUnsupportedRegions",
+            "path": "AppStack/AwsCdkKinesisEncryptedStreamsUnsupportedRegions",
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.CfnCondition",
+              "version": "2.17.0"
+            }
+          },
+          "Alarm-WriteProvisionedThroughputExceeded": {
+            "id": "Alarm-WriteProvisionedThroughputExceeded",
+            "path": "AppStack/Alarm-WriteProvisionedThroughputExceeded",
+            "children": {
+              "Resource": {
+                "id": "Resource",
+                "path": "AppStack/Alarm-WriteProvisionedThroughputExceeded/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::CloudWatch::Alarm",
+                  "aws:cdk:cloudformation:props": {
+                    "comparisonOperator": "GreaterThanOrEqualToThreshold",
+                    "evaluationPeriods": 2,
+                    "alarmActions": [
+                      {
+                        "Ref": "snskinesisalarmtopicBC9DFA47"
+                      }
+                    ],
+                    "alarmDescription": {
+                      "Fn::Join": [
+                        "",
+                        [
+                          "Too many WriteProvisionedThroughputExceeded errors in stream: ",
+                          {
+                            "Ref": "rootStream247648A3"
+                          },
+                          " detected."
+                        ]
+                      ]
+                    },
+                    "datapointsToAlarm": 1,
+                    "dimensions": [
+                      {
+                        "name": "StreamName",
+                        "value": {
+                          "Ref": "rootStream247648A3"
+                        }
+                      }
+                    ],
+                    "metricName": "WriteProvisionedThroughputExceeded",
+                    "namespace": "AWS/Kinesis",
+                    "period": 300,
+                    "statistic": "Average",
+                    "threshold": 1
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_cloudwatch.CfnAlarm",
+                  "version": "2.17.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_cloudwatch.Alarm",
+              "version": "2.17.0"
+            }
+          },
+          "sns-kinesis-alarm-topic": {
+            "id": "sns-kinesis-alarm-topic",
+            "path": "AppStack/sns-kinesis-alarm-topic",
+            "children": {
+              "Resource": {
+                "id": "Resource",
+                "path": "AppStack/sns-kinesis-alarm-topic/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::SNS::Topic",
+                  "aws:cdk:cloudformation:props": {
+                    "displayName": "my-sns-kinesis-alarm-topic"
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_sns.CfnTopic",
+                  "version": "2.17.0"
+                }
+              },
+              "+123412341234": {
+                "id": "+123412341234",
+                "path": "AppStack/sns-kinesis-alarm-topic/+123412341234",
+                "children": {
+                  "Resource": {
+                    "id": "Resource",
+                    "path": "AppStack/sns-kinesis-alarm-topic/+123412341234/Resource",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::SNS::Subscription",
+                      "aws:cdk:cloudformation:props": {
+                        "protocol": "sms",
+                        "topicArn": {
+                          "Ref": "snskinesisalarmtopicBC9DFA47"
+                        },
+                        "endpoint": "+123412341234"
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_sns.CfnSubscription",
+                      "version": "2.17.0"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_sns.Subscription",
+                  "version": "2.17.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_sns.Topic",
+              "version": "2.17.0"
+            }
+          },
+          "RawDataBucket": {
+            "id": "RawDataBucket",
+            "path": "AppStack/RawDataBucket",
+            "children": {
+              "Resource": {
+                "id": "Resource",
+                "path": "AppStack/RawDataBucket/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::S3::Bucket",
+                  "aws:cdk:cloudformation:props": {}
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_s3.CfnBucket",
+                  "version": "2.17.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_s3.Bucket",
+              "version": "2.17.0"
+            }
+          },
+          "firehoseRole": {
+            "id": "firehoseRole",
+            "path": "AppStack/firehoseRole",
+            "children": {
+              "Resource": {
+                "id": "Resource",
+                "path": "AppStack/firehoseRole/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::IAM::Role",
+                  "aws:cdk:cloudformation:props": {
+                    "assumeRolePolicyDocument": {
+                      "Statement": [
+                        {
+                          "Action": "sts:AssumeRole",
+                          "Effect": "Allow",
+                          "Principal": {
+                            "Service": "firehose.amazonaws.com"
+                          }
+                        }
+                      ],
+                      "Version": "2012-10-17"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_iam.CfnRole",
+                  "version": "2.17.0"
+                }
+              },
+              "DefaultPolicy": {
+                "id": "DefaultPolicy",
+                "path": "AppStack/firehoseRole/DefaultPolicy",
+                "children": {
+                  "Resource": {
+                    "id": "Resource",
+                    "path": "AppStack/firehoseRole/DefaultPolicy/Resource",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::IAM::Policy",
+                      "aws:cdk:cloudformation:props": {
+                        "policyDocument": {
+                          "Statement": [
+                            {
+                              "Action": [
+                                "kinesis:DescribeStreamSummary",
+                                "kinesis:GetRecords",
+                                "kinesis:GetShardIterator",
+                                "kinesis:ListShards",
+                                "kinesis:SubscribeToShard",
+                                "kinesis:DescribeStream",
+                                "kinesis:ListStreams"
+                              ],
+                              "Effect": "Allow",
+                              "Resource": {
+                                "Fn::GetAtt": [
+                                  "rootStream247648A3",
+                                  "Arn"
+                                ]
+                              }
+                            },
+                            {
+                              "Action": "kinesis:DescribeStream",
+                              "Effect": "Allow",
+                              "Resource": {
+                                "Fn::GetAtt": [
+                                  "rootStream247648A3",
+                                  "Arn"
+                                ]
+                              }
+                            },
+                            {
+                              "Action": [
+                                "s3:DeleteObject*",
+                                "s3:PutObject",
+                                "s3:PutObjectLegalHold",
+                                "s3:PutObjectRetention",
+                                "s3:PutObjectTagging",
+                                "s3:PutObjectVersionTagging",
+                                "s3:Abort*"
+                              ],
+                              "Effect": "Allow",
+                              "Resource": [
+                                {
+                                  "Fn::GetAtt": [
+                                    "RawDataBucket57F26C03",
+                                    "Arn"
+                                  ]
+                                },
+                                {
+                                  "Fn::Join": [
+                                    "",
+                                    [
+                                      {
+                                        "Fn::GetAtt": [
+                                          "RawDataBucket57F26C03",
+                                          "Arn"
+                                        ]
+                                      },
+                                      "/*"
+                                    ]
+                                  ]
+                                }
+                              ]
+                            }
+                          ],
+                          "Version": "2012-10-17"
+                        },
+                        "policyName": "firehoseRoleDefaultPolicy27F13165",
+                        "roles": [
+                          {
+                            "Ref": "firehoseRoleE5891AF8"
+                          }
+                        ]
+                      }
+                    },
+                    "constructInfo": {
+                      "fqn": "aws-cdk-lib.aws_iam.CfnPolicy",
+                      "version": "2.17.0"
+                    }
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.aws_iam.Policy",
+                  "version": "2.17.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_iam.Role",
+              "version": "2.17.0"
+            }
+          },
+          "FirehoseStreamToS3": {
+            "id": "FirehoseStreamToS3",
+            "path": "AppStack/FirehoseStreamToS3",
+            "attributes": {
+              "aws:cdk:cloudformation:type": "AWS::KinesisFirehose::DeliveryStream",
+              "aws:cdk:cloudformation:props": {
+                "deliveryStreamName": "StreamRawToS3",
+                "deliveryStreamType": "KinesisStreamAsSource",
+                "kinesisStreamSourceConfiguration": {
+                  "kinesisStreamArn": {
+                    "Fn::GetAtt": [
+                      "rootStream247648A3",
+                      "Arn"
+                    ]
+                  },
+                  "roleArn": {
+                    "Fn::GetAtt": [
+                      "firehoseRoleE5891AF8",
+                      "Arn"
+                    ]
+                  }
+                },
+                "s3DestinationConfiguration": {
+                  "bucketArn": {
+                    "Fn::GetAtt": [
+                      "RawDataBucket57F26C03",
+                      "Arn"
+                    ]
+                  },
+                  "bufferingHints": {
+                    "sizeInMBs": 64,
+                    "intervalInSeconds": 60
+                  },
+                  "compressionFormat": "GZIP",
+                  "encryptionConfiguration": {
+                    "noEncryptionConfig": "NoEncryption"
+                  },
+                  "prefix": "raw/",
+                  "roleArn": {
+                    "Fn::GetAtt": [
+                      "firehoseRoleE5891AF8",
+                      "Arn"
+                    ]
+                  }
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.aws_kinesisfirehose.CfnDeliveryStream",
+              "version": "2.17.0"
+            }
+          },
+          "snsTopicArn": {
+            "id": "snsTopicArn",
+            "path": "AppStack/snsTopicArn",
+            "constructInfo": {
+              "fqn": "aws-cdk-lib.CfnOutput",
+              "version": "2.17.0"
+            }
+          },
+          "CDKMetadata": {
+            "id": "CDKMetadata",
+            "path": "AppStack/CDKMetadata",
+            "children": {
+              "Default": {
+                "id": "Default",
+                "path": "AppStack/CDKMetadata/Default",
+                "constructInfo": {
+                  "fqn": "aws-cdk-lib.CfnResource",
+                  "version": "2.17.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "constructs.Construct",
+              "version": "10.0.94"
+            }
+          }
+        },
+        "constructInfo": {
+          "fqn": "aws-cdk-lib.Stack",
+          "version": "2.17.0"
+        }
+      }
+    },
+    "constructInfo": {
+      "fqn": "aws-cdk-lib.App",
+      "version": "2.17.0"
+    }
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "version": "16.0.0",
+  "artifacts": {
+    "Tree": {
+      "type": "cdk:tree",
+      "properties": {
+        "file": "tree.json"
+      }
+    },
+    "AppStack.assets": {
+      "type": "cdk:asset-manifest",
+      "properties": {
+        "file": "AppStack.assets.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+      }
+    },
+    "AppStack": {
+      "type": "aws:cloudformation:stack",
+      "environment": "aws://788441421336/eu-west-1",
+      "properties": {
+        "templateFile": "AppStack.template.json",
+        "validateOnSynth": false,
+        "assumeRoleArn": "arn:${AWS::Partition}:iam::788441421336:role/cdk-hnb659fds-deploy-role-788441421336-eu-west-1",
+        "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::788441421336:role/cdk-hnb659fds-cfn-exec-role-788441421336-eu-west-1",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-788441421336-eu-west-1/9298fa9650571ad0977b68d7e2b44f96566c624209658b0e240a80b6a25ee987.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
+        "additionalDependencies": [
+          "AppStack.assets"
+        ],
+        "lookupRole": {
+          "arn": "arn:${AWS::Partition}:iam::788441421336:role/cdk-hnb659fds-lookup-role-788441421336-eu-west-1",
+          "requiresBootstrapStackVersion": 8,
+          "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+        },
+        "stackName": "kinesis-stream-and-cloudwatch-alarm-stack"
+      },
+      "dependencies": [
+        "AppStack.assets"
+      ],
+      "metadata": {
+        "/AppStack/rootStream/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "rootStream247648A3"
+          }
+        ],
+        "/AppStack/AwsCdkKinesisEncryptedStreamsUnsupportedRegions": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AwsCdkKinesisEncryptedStreamsUnsupportedRegions"
+          }
+        ],
+        "/AppStack/Alarm-WriteProvisionedThroughputExceeded/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AlarmWriteProvisionedThroughputExceeded5EE3EC74"
+          }
+        ],
+        "/AppStack/sns-kinesis-alarm-topic/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "snskinesisalarmtopicBC9DFA47"
+          }
+        ],
+        "/AppStack/sns-kinesis-alarm-topic/+123412341234/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "snskinesisalarmtopic123412341234D49FA4AD"
+          }
+        ],
+        "/AppStack/RawDataBucket/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "RawDataBucket57F26C03"
+          }
+        ],
+        "/AppStack/firehoseRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "firehoseRoleE5891AF8"
+          }
+        ],
+        "/AppStack/firehoseRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "firehoseRoleDefaultPolicy27F13165"
+          }
+        ],
+        "/AppStack/FirehoseStreamToS3": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "FirehoseStreamToS3"
+          }
+        ],
+        "/AppStack/snsTopicArn": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "snsTopicArn"
+          }
+        ],
+        "/AppStack/CDKMetadata/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CDKMetadata"
+          }
+        ],
+        "/AppStack/BootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BootstrapVersion"
+          }
+        ],
+        "/AppStack/CheckBootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CheckBootstrapVersion"
+          }
+        ]
+      },
+      "displayName": "AppStack"
+    }
+  }
+}

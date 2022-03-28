@@ -1,0 +1,363 @@
+{
+    "Resources":
+    {
+        "rootStream247648A3":
+        {
+            "Type": "AWS::Kinesis::Stream",
+            "Properties":
+            {
+                "Name": "bkco-kinesis-stream",
+                "RetentionPeriodHours": 24,
+                "ShardCount": 1,
+                "StreamEncryption":
+                {
+                    "Fn::If":
+                    [
+                        "AwsCdkKinesisEncryptedStreamsUnsupportedRegions",
+                        {
+                            "Ref": "AWS::NoValue"
+                        },
+                        {
+                            "EncryptionType": "KMS",
+                            "KeyId": "alias/aws/kinesis"
+                        }
+                    ]
+                },
+                "StreamModeDetails":
+                {
+                    "StreamMode": "PROVISIONED"
+                }
+            }
+        },
+        "AlarmWriteProvisionedThroughputExceeded5EE3EC74":
+        {
+            "Type": "AWS::CloudWatch::Alarm",
+            "Properties":
+            {
+                "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+                "EvaluationPeriods": 2,
+                "AlarmActions":
+                [
+                    {
+                        "Ref": "snskinesisalarmtopicBC9DFA47"
+                    }
+                ],
+                "AlarmDescription":
+                {
+                    "Fn::Join":
+                    [
+                        "",
+                        [
+                            "Too many WriteProvisionedThroughputExceeded errors in stream: ",
+                            {
+                                "Ref": "rootStream247648A3"
+                            },
+                            " detected."
+                        ]
+                    ]
+                },
+                "DatapointsToAlarm": 1,
+                "Dimensions":
+                [
+                    {
+                        "Name": "StreamName",
+                        "Value":
+                        {
+                            "Ref": "rootStream247648A3"
+                        }
+                    }
+                ],
+                "MetricName": "WriteProvisionedThroughputExceeded",
+                "Namespace": "AWS/Kinesis",
+                "Period": 300,
+                "Statistic": "Average",
+                "Threshold": 1
+            }
+        },
+        "snskinesisalarmtopicBC9DFA47":
+        {
+            "Type": "AWS::SNS::Topic",
+            "Properties":
+            {
+                "DisplayName": "my-sns-kinesis-alarm-topic"
+            }
+        },
+        "snskinesisalarmtopic123412341234A1DA34E4":
+        {
+            "Type": "AWS::SNS::Subscription",
+            "Properties":
+            {
+                "Protocol": "sms",
+                "TopicArn":
+                {
+                    "Ref": "snskinesisalarmtopicBC9DFA47"
+                },
+                "Endpoint": "+12341234"
+            }
+        },
+        "RawDataBucket57F26C03":
+        {
+            "Type": "AWS::S3::Bucket",
+            "UpdateReplacePolicy": "Retain",
+            "DeletionPolicy": "Retain"
+        },
+        "firehoseRoleE5891AF8":
+        {
+            "Type": "AWS::IAM::Role",
+            "Properties":
+            {
+                "AssumeRolePolicyDocument":
+                {
+                    "Statement":
+                    [
+                        {
+                            "Action": "sts:AssumeRole",
+                            "Effect": "Allow",
+                            "Principal":
+                            {
+                                "Service": "firehose.amazonaws.com"
+                            }
+                        }
+                    ],
+                    "Version": "2012-10-17"
+                }
+            }
+        },
+        "firehoseRoleDefaultPolicy27F13165":
+        {
+            "Type": "AWS::IAM::Policy",
+            "Properties":
+            {
+                "PolicyDocument":
+                {
+                    "Statement":
+                    [
+                        {
+                            "Action":
+                            [
+                                "kinesis:DescribeStreamSummary",
+                                "kinesis:GetRecords",
+                                "kinesis:GetShardIterator",
+                                "kinesis:ListShards",
+                                "kinesis:SubscribeToShard",
+                                "kinesis:DescribeStream",
+                                "kinesis:ListStreams"
+                            ],
+                            "Effect": "Allow",
+                            "Resource":
+                            {
+                                "Fn::GetAtt":
+                                [
+                                    "rootStream247648A3",
+                                    "Arn"
+                                ]
+                            }
+                        },
+                        {
+                            "Action": "kinesis:DescribeStream",
+                            "Effect": "Allow",
+                            "Resource":
+                            {
+                                "Fn::GetAtt":
+                                [
+                                    "rootStream247648A3",
+                                    "Arn"
+                                ]
+                            }
+                        },
+                        {
+                            "Action":
+                            [
+                                "s3:DeleteObject*",
+                                "s3:PutObject",
+                                "s3:PutObjectLegalHold",
+                                "s3:PutObjectRetention",
+                                "s3:PutObjectTagging",
+                                "s3:PutObjectVersionTagging",
+                                "s3:Abort*"
+                            ],
+                            "Effect": "Allow",
+                            "Resource":
+                            [
+                                {
+                                    "Fn::GetAtt":
+                                    [
+                                        "RawDataBucket57F26C03",
+                                        "Arn"
+                                    ]
+                                },
+                                {
+                                    "Fn::Join":
+                                    [
+                                        "",
+                                        [
+                                            {
+                                                "Fn::GetAtt":
+                                                [
+                                                    "RawDataBucket57F26C03",
+                                                    "Arn"
+                                                ]
+                                            },
+                                            "/*"
+                                        ]
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "Version": "2012-10-17"
+                },
+                "PolicyName": "firehoseRoleDefaultPolicy27F13165",
+                "Roles":
+                [
+                    {
+                        "Ref": "firehoseRoleE5891AF8"
+                    }
+                ]
+            }
+        },
+        "FirehoseStreamToS3":
+        {
+            "Type": "AWS::KinesisFirehose::DeliveryStream",
+            "Properties":
+            {
+                "DeliveryStreamName": "StreamRawToS3",
+                "DeliveryStreamType": "KinesisStreamAsSource",
+                "KinesisStreamSourceConfiguration":
+                {
+                    "KinesisStreamARN":
+                    {
+                        "Fn::GetAtt":
+                        [
+                            "rootStream247648A3",
+                            "Arn"
+                        ]
+                    },
+                    "RoleARN":
+                    {
+                        "Fn::GetAtt":
+                        [
+                            "firehoseRoleE5891AF8",
+                            "Arn"
+                        ]
+                    }
+                },
+                "S3DestinationConfiguration":
+                {
+                    "BucketARN":
+                    {
+                        "Fn::GetAtt":
+                        [
+                            "RawDataBucket57F26C03",
+                            "Arn"
+                        ]
+                    },
+                    "BufferingHints":
+                    {
+                        "IntervalInSeconds": 60,
+                        "SizeInMBs": 64
+                    },
+                    "CompressionFormat": "GZIP",
+                    "EncryptionConfiguration":
+                    {
+                        "NoEncryptionConfig": "NoEncryption"
+                    },
+                    "Prefix": "raw/",
+                    "RoleARN":
+                    {
+                        "Fn::GetAtt":
+                        [
+                            "firehoseRoleE5891AF8",
+                            "Arn"
+                        ]
+                    }
+                }
+            },
+            "DependsOn":
+            [
+                "firehoseRoleDefaultPolicy27F13165",
+                "firehoseRoleE5891AF8"
+            ]
+        }
+    },
+    "Conditions":
+    {
+        "AwsCdkKinesisEncryptedStreamsUnsupportedRegions":
+        {
+            "Fn::Or":
+            [
+                {
+                    "Fn::Equals":
+                    [
+                        {
+                            "Ref": "AWS::Region"
+                        },
+                        "cn-north-1"
+                    ]
+                },
+                {
+                    "Fn::Equals":
+                    [
+                        {
+                            "Ref": "AWS::Region"
+                        },
+                        "cn-northwest-1"
+                    ]
+                }
+            ]
+        }
+    },
+    "Outputs":
+    {
+        "snsTopicArn":
+        {
+            "Description": "The arn of the SNS topic",
+            "Value":
+            {
+                "Ref": "snskinesisalarmtopicBC9DFA47"
+            }
+        }
+    },
+    "Parameters":
+    {
+        "BootstrapVersion":
+        {
+            "Type": "AWS::SSM::Parameter::Value<String>",
+            "Default": "/cdk-bootstrap/hnb659fds/version",
+            "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+        }
+    },
+    "Rules":
+    {
+        "CheckBootstrapVersion":
+        {
+            "Assertions":
+            [
+                {
+                    "Assert":
+                    {
+                        "Fn::Not":
+                        [
+                            {
+                                "Fn::Contains":
+                                [
+                                    [
+                                        "1",
+                                        "2",
+                                        "3",
+                                        "4",
+                                        "5"
+                                    ],
+                                    {
+                                        "Ref": "BootstrapVersion"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+                }
+            ]
+        }
+    }
+}
